@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
 from institutions.models import Complaint, ContactInquiry
+from institutions.notification_service import NotificationService
 
 TYPE_VALUES   = {c[0] for c in Complaint.TYPE_CHOICES}
 STATUS_VALUES = {c[0] for c in Complaint.STATUS_CHOICES}
@@ -53,12 +54,20 @@ class ComplaintService:
         if not subject or not message:
             raise ValueError("Subject and message are required.")
 
-        return Complaint.objects.create(
+        complaint = Complaint.objects.create(
             type=complaint_type,
             subject=subject,
             message=message,
             submitted_by=user,
         )
+
+        NotificationService.notify_super_admins(
+            title='New help request' if complaint_type == 'HELP' else 'New complaint',
+            message=f"{user.username}: {subject}",
+            link='/superadmin/messages',
+        )
+
+        return complaint
 
     @staticmethod
     @transaction.atomic
@@ -77,6 +86,15 @@ class ComplaintService:
                 complaint.replied_at = timezone.now()
 
         complaint.save()
+
+        if 'reply' in data and (data.get('reply') or '').strip():
+            NotificationService.notify(
+                complaint.submitted_by,
+                title='Your message received a reply',
+                message=complaint.subject,
+                link='/help',
+            )
+
         return complaint
 
 

@@ -4,6 +4,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Semantic color tokens as CSS custom properties (space-separated RGB, so
+ * Tailwind's rgb(var(--x) / <alpha-value>) opacity modifiers work). `.dark`
+ * overrides these — applied to the dashboard layout's root element, not
+ * <html>, so the public marketing site is unaffected by the user's theme
+ * choice. `ink` is the foreground/text token (dark-on-light in light mode,
+ * light-on-dark in dark mode) and `paper`/`surface` are background tokens —
+ * this is why every existing `ink/[opacity]` border/divider/hover-tint
+ * utility across the app keeps working correctly in both themes.
+ */
+:root {
+  --color-paper: 251 249 245;
+  --color-paper-soft: 245 242 234;
+  --color-paper-line: 233 228 216;
+  --color-ink: 18 20 28;
+  --color-ink-soft: 60 65 82;
+  --color-ink-faint: 107 112 128;
+  --color-surface: 255 255 255;
+}
+
+.dark {
+  --color-paper: 12 16 26;
+  --color-paper-soft: 18 23 36;
+  --color-paper-line: 32 39 56;
+  --color-ink: 237 240 246;
+  --color-ink-soft: 176 184 201;
+  --color-ink-faint: 124 133 153;
+  --color-surface: 22 27 41;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -32,6 +62,6 @@ body {
   height: 6px;
 }
 .scroll-thin::-webkit-scrollbar-thumb {
-  background-color: #E9E4D8;
+  background-color: rgb(var(--color-paper-line));
   border-radius: 999px;
 }

@@ -13,7 +13,7 @@ export default function Modal({ open, onClose, title, children, width = 'max-w-l
           transition={{ duration: 0.15 }}
         >
           <motion.div
-            className="absolute inset-0 bg-ink/40"
+            className="absolute inset-0 bg-black/40"
             onClick={onClose}
           />
 
@@ -22,8 +22,8 @@ export default function Modal({ open, onClose, title, children, width = 'max-w-l
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className={`relative w-full ${width} bg-white/80 backdrop-blur-2xl rounded-3xl shadow-glass
-              border border-white/60 max-h-[88vh] flex flex-col overflow-hidden`}
+            className={`relative w-full ${width} bg-surface/80 backdrop-blur-2xl rounded-3xl shadow-glass
+              border border-white/60 dark:border-white/10 max-h-[88vh] flex flex-col overflow-hidden`}
           >
             {title && (
               <div className="flex items-center justify-between px-6 py-4 border-b border-ink/[0.06] shrink-0">

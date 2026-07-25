@@ -6,10 +6,21 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import json
 
-from institutions.models import User, Role
+from institutions.models import User, Role, LoginActivity
 from institutions.jwt_utils import generate_access_token, generate_refresh_token, decode_token, jwt_required
 from institutions.email_utils import send_verification_email, send_password_reset_email
 from institutions.access import load_permissions, resolve_institution_id, owned_institution_ids
+
+
+# ---------------------------------------------------------------------------
+# Helper: client IP (behind a proxy, X-Forwarded-For's first hop wins)
+# ---------------------------------------------------------------------------
+
+def _client_ip(request) -> str | None:
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
 
 
 # ---------------------------------------------------------------------------
@@ -98,6 +109,10 @@ def login_view(request):
 
     access_token  = generate_access_token(user)
     refresh_token = generate_refresh_token(user)
+
+    LoginActivity.objects.create(
+        user=user, email=user.email, action='LOGIN', ip_address=_client_ip(request),
+    )
 
     response = JsonResponse({
         'user':    _user_json(user),
@@ -194,6 +209,26 @@ def me_view(request):
 @csrf_exempt
 @require_http_methods(['POST'])
 def logout_view(request):
+    # Best-effort identification for the audit trail — logout must still
+    # succeed even if the token is missing, expired, or invalid.
+    auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+    if auth_header.startswith('Bearer '):
+        token = auth_header.split(' ', 1)[1]
+    else:
+        token = request.COOKIES.get('access_token')
+
+    if token:
+        try:
+            payload = decode_token(token)
+            LoginActivity.objects.create(
+                user_id=payload.get('user_id'),
+                email=payload.get('email', ''),
+                action='LOGOUT',
+                ip_address=_client_ip(request),
+            )
+        except jwt.PyJWTError:
+            pass
+
     response = JsonResponse({'message': 'Logged out successfully.'})
     response.delete_cookie('access_token',  path='/')
     response.delete_cookie('refresh_token', path='/')

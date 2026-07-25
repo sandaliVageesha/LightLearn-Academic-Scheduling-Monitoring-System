@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from institutions.models import Institution, User
+from institutions.models import Institution, User, ActivityLog, LoginActivity, Notification
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -61,3 +61,32 @@ class InstitutionListSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Institution
         fields = ['id', 'name', 'logo', 'owner', 'status', 'created_at', 'updated_at']
+
+
+class ActivityLogSerializer(serializers.ModelSerializer):
+    """Maintenance > Audit Logs: who did what, in the institution module."""
+    actor_name  = serializers.SerializerMethodField()
+    actor_email = serializers.CharField(source='actor.email', default=None, read_only=True)
+
+    class Meta:
+        model  = ActivityLog
+        fields = ['id', 'actor_name', 'actor_email', 'action', 'module', 'description', 'timestamp']
+
+    def get_actor_name(self, obj):
+        return obj.actor.username if obj.actor else 'System'
+
+
+class LoginActivitySerializer(serializers.ModelSerializer):
+    """Maintenance > Login Activity: who logged in/out, from where, when."""
+
+    class Meta:
+        model  = LoginActivity
+        fields = ['id', 'email', 'action', 'ip_address', 'timestamp']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    """Dashboard navbar bell — a single user's own notifications."""
+
+    class Meta:
+        model  = Notification
+        fields = ['id', 'title', 'message', 'link', 'is_read', 'created_at']

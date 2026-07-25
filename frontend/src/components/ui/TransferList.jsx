@@ -7,7 +7,7 @@ function Panel({ title, list, checked, setChecked, empty }) {
   };
 
   return (
-    <div className="flex-1 min-w-0 flex flex-col border border-ink/10 rounded-xl overflow-hidden bg-white">
+    <div className="flex-1 min-w-0 flex flex-col border border-ink/10 rounded-xl overflow-hidden bg-surface">
       <div className="px-3 py-2 border-b border-ink/[0.06] bg-ink/[0.02] flex items-center justify-between">
         <span className="text-xs font-semibold text-ink-soft">{title}</span>
         <span className="text-[10px] text-ink-faint">{list.length}</span>

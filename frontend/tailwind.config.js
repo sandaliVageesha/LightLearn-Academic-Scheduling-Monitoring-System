@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: "class",
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -11,15 +12,23 @@ export default {
         display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
       },
       colors: {
+        // paper/ink/surface are CSS-variable-driven (see src/index.css) so
+        // every existing bg-paper/text-ink/bg-surface usage across the app
+        // automatically flips between light and dark values when the
+        // `.dark` class is toggled — no per-component dark: variants needed
+        // for these three tokens.
         paper: {
-          DEFAULT: "#FBF9F5",
-          soft: "#F5F2EA",
-          line: "#E9E4D8",
+          DEFAULT: "rgb(var(--color-paper) / <alpha-value>)",
+          soft: "rgb(var(--color-paper-soft) / <alpha-value>)",
+          line: "rgb(var(--color-paper-line) / <alpha-value>)",
         },
         ink: {
-          DEFAULT: "#12141C",
-          soft: "#3C4152",
-          faint: "#6B7080",
+          DEFAULT: "rgb(var(--color-ink) / <alpha-value>)",
+          soft: "rgb(var(--color-ink-soft) / <alpha-value>)",
+          faint: "rgb(var(--color-ink-faint) / <alpha-value>)",
+        },
+        surface: {
+          DEFAULT: "rgb(var(--color-surface) / <alpha-value>)",
         },
         brand: {
           50:  "#EEF2F8",

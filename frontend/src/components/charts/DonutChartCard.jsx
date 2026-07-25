@@ -1,17 +1,24 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Sector } from 'recharts';
 import Card from '../ui/Card';
 import EmptyState from '../ui/EmptyState';
 import { PieChart as PieIcon } from 'lucide-react';
+import ChartTooltip from './ChartTooltip';
 
-function ChartTooltip({ active, payload }) {
-  if (!active || !payload?.length) return null;
-  const p = payload[0];
+function ActiveSlice(props) {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
   return (
-    <div className="bg-ink text-white text-xs rounded-lg px-3 py-2 shadow-lift">
-      <p className="font-semibold">{p.name}</p>
-      <p className="text-white/80">{p.value}</p>
-    </div>
+    <Sector
+      cx={cx}
+      cy={cy}
+      innerRadius={innerRadius}
+      outerRadius={outerRadius + 6}
+      startAngle={startAngle}
+      endAngle={endAngle}
+      fill={fill}
+      cornerRadius={6}
+    />
   );
 }
 
@@ -19,6 +26,7 @@ function ChartTooltip({ active, payload }) {
  * data: [{ name, value, color }]
  */
 export default function DonutChartCard({ title, icon: Icon = PieIcon, data = [], height = 220 }) {
+  const [activeIndex, setActiveIndex] = useState(null);
   const total = data.reduce((s, d) => s + d.value, 0);
 
   return (
@@ -47,30 +55,53 @@ export default function DonutChartCard({ title, icon: Icon = PieIcon, data = [],
                   nameKey="name"
                   innerRadius="62%"
                   outerRadius="90%"
-                  paddingAngle={2}
+                  paddingAngle={3}
+                  cornerRadius={6}
                   strokeWidth={0}
+                  animationDuration={700}
+                  animationEasing="ease-out"
+                  activeIndex={activeIndex}
+                  activeShape={ActiveSlice}
+                  onMouseEnter={(_, i) => setActiveIndex(i)}
+                  onMouseLeave={() => setActiveIndex(null)}
                 >
                   {data.map((d, i) => (
-                    <Cell key={i} fill={d.color} />
+                    <Cell
+                      key={i}
+                      fill={d.color}
+                      className="transition-opacity duration-150"
+                      opacity={activeIndex === null || activeIndex === i ? 1 : 0.35}
+                    />
                   ))}
                 </Pie>
                 <Tooltip content={<ChartTooltip />} />
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-display font-bold text-ink">{total}</span>
-              <span className="text-[10px] text-ink-faint uppercase tracking-wide">Total</span>
+              <span className="text-2xl font-display font-bold text-ink">
+                {activeIndex !== null ? data[activeIndex].value : total}
+              </span>
+              <span className="text-[10px] text-ink-faint uppercase tracking-wide">
+                {activeIndex !== null ? data[activeIndex].name : 'Total'}
+              </span>
             </div>
           </motion.div>
 
           <div className="flex flex-col gap-2 flex-1 min-w-[140px]">
-            {data.map((d) => (
-              <div key={d.name} className="flex items-center justify-between gap-3 text-sm">
+            {data.map((d, i) => (
+              <div
+                key={d.name}
+                onMouseEnter={() => setActiveIndex(i)}
+                onMouseLeave={() => setActiveIndex(null)}
+                className={`flex items-center justify-between gap-3 text-sm rounded-lg px-1.5 py-1 -mx-1.5 cursor-default transition-colors ${
+                  activeIndex === i ? 'bg-ink/[0.04]' : ''
+                }`}
+              >
                 <span className="flex items-center gap-2 text-ink-soft">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
                   {d.name}
                 </span>
-                <span className="font-semibold text-ink">{d.value}</span>
+                <span className="font-semibold text-ink tabular-nums">{d.value}</span>
               </div>
             ))}
           </div>

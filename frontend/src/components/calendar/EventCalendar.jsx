@@ -150,7 +150,7 @@ export default function EventCalendar({ role }) {
   const selEvents = selDay ? byDate[selDay] || [] : [];
 
   return (
-    <div className="rounded-2xl border border-ink/[0.06] bg-white overflow-hidden shadow-soft">
+    <div className="rounded-2xl border border-ink/[0.06] bg-surface overflow-hidden shadow-soft">
       {/* Header */}
       <div className="flex justify-between items-center px-5 py-4 border-b border-ink/[0.06]">
         <div className="flex items-center gap-2">
@@ -290,7 +290,7 @@ export default function EventCalendar({ role }) {
                       key={ev.id}
                       onClick={() => openEdit(ev)}
                       className={`flex items-center gap-3 p-3 rounded-xl text-left transition-colors hover:bg-ink/[0.03] border border-transparent hover:border-ink/[0.06] group
-                        ${conflictIds.has(ev.id) ? 'border-danger/30 bg-red-50/40' : ''}`}
+                        ${conflictIds.has(ev.id) ? 'border-danger/30 bg-red-50/40 dark:bg-red-500/10' : ''}`}
                     >
                       <span
                         className="w-2 h-2 rounded-full shrink-0"

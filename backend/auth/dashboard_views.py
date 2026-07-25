@@ -104,7 +104,7 @@ def super_admin_dashboard(request):
         })
 
     recent_activity = list(
-        ActivityLog.objects.values(
+        ActivityLog.objects.filter(module='INSTITUTION').order_by('-timestamp').values(
             'id', 'module', 'action', 'description', 'timestamp'
         )[:20]
     )

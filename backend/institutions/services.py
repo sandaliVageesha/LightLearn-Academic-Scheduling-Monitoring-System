@@ -3,12 +3,13 @@ from .models import Institution, User
 from .serializers import InstitutionCreateSerializer, InstitutionUpdateSerializer
 from .models import ActivityLog
 from .models import Institution, User, Role
+from .notification_service import NotificationService
 
 class InstitutionService:
 
     @staticmethod
     @transaction.atomic
-    def create_institution(data: dict, logo=None, status: str = 'APPROVED') -> Institution:
+    def create_institution(data: dict, logo=None, status: str = 'APPROVED', actor=None) -> Institution:
 
         serializer = InstitutionCreateSerializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -41,16 +42,24 @@ class InstitutionService:
         )
 
         ActivityLog.objects.create(
+            actor=actor,
             module='INSTITUTION',
             action='CREATE',
             description=f"Institution '{institution.name}' was created."
         )
 
+        if status == 'PENDING':
+            NotificationService.notify_super_admins(
+                title='New institution registration',
+                message=f"'{institution.name}' is awaiting approval.",
+                link='/institutions',
+            )
+
         return institution
 
     @staticmethod
     @transaction.atomic
-    def set_status(institution: Institution, status: str) -> Institution:
+    def set_status(institution: Institution, status: str, actor=None) -> Institution:
         valid_statuses = {choice[0] for choice in Institution.STATUS_CHOICES}
         if status not in valid_statuses:
             raise ValueError("Invalid status.")
@@ -59,14 +68,24 @@ class InstitutionService:
         institution.save()
 
         ActivityLog.objects.create(
+            actor=actor,
             module='INSTITUTION', action='UPDATE',
             description=f"Institution '{institution.name}' was {status.lower()}."
         )
+
+        if status in ('APPROVED', 'REJECTED'):
+            NotificationService.notify(
+                institution.owner,
+                title=f"Institution {status.lower()}",
+                message=f"Your institution '{institution.name}' was {status.lower()}.",
+                link='/dashboard/owner',
+            )
+
         return institution
 
     @staticmethod
     @transaction.atomic
-    def update_institution(institution: Institution, data: dict, logo=None) -> Institution:
+    def update_institution(institution: Institution, data: dict, logo=None, actor=None) -> Institution:
         """Update institution name/logo and owner credentials."""
         serializer = InstitutionUpdateSerializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -90,6 +109,7 @@ class InstitutionService:
         owner.save()
         institution.save()
         ActivityLog.objects.create(
+            actor=actor,
             module='INSTITUTION', action='UPDATE',
             description=f"Institution '{institution.name}' was updated."
         )
@@ -97,7 +117,7 @@ class InstitutionService:
 
     @staticmethod
     @transaction.atomic
-    def soft_delete_institution(institution: Institution):
+    def soft_delete_institution(institution: Institution, actor=None):
         """
         Soft delete: mark as deleted, do NOT remove from DB.
         The owner user is also soft-deactivated (optional: you could keep them).
@@ -107,9 +127,15 @@ class InstitutionService:
         # Optionally disable the owner too — here we just keep them
         # If you want, you could set owner.is_active = False
 
+        ActivityLog.objects.create(
+            actor=actor,
+            module='INSTITUTION', action='DELETE',
+            description=f"Institution '{institution.name}' was deleted."
+        )
+
     @staticmethod
     @transaction.atomic
-    def hard_delete_institution(institution: Institution):
+    def hard_delete_institution(institution: Institution, actor=None):
         """
         Hard delete: removes institution AND the owner user.
         Only use this for permanent removal (e.g. admin cleanup).
@@ -118,6 +144,7 @@ class InstitutionService:
         institution.delete()
         owner.delete()
         ActivityLog.objects.create(
+        actor=actor,
         module='INSTITUTION', action='DELETE',
         description=f"Institution '{institution.name}' was deleted."
     )

@@ -1,7 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Building2, Users, GraduationCap, BookOpen, Activity, MessageSquareWarning } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Building2, Users, GraduationCap, BookOpen, Activity, MessageSquareWarning, Inbox, ArrowRight } from "lucide-react";
 import dashboardService from "../services/dashboardService";
+import complaintService from "../services/complaintService";
+import usePolling from "../hooks/usePolling";
 import StatCard from "../components/StatCard";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
@@ -12,6 +15,13 @@ import DonutChartCard from "../components/charts/DonutChartCard";
 import ActivityFeed from "../components/ActivityFeed";
 import { SkeletonRows } from "../components/ui/Skeleton";
 import ErrorState from "../components/ui/ErrorState";
+
+const MESSAGES_POLL_MS = 10000;
+
+const TYPE_BADGE = {
+  COMPLAINT: { tone: 'danger', label: 'Complaint' },
+  HELP:      { tone: 'brand',  label: 'Help Request' },
+};
 
 const TONES = ['ocean', 'success', 'violet', 'warning', 'danger', 'accent'];
 
@@ -28,6 +38,9 @@ export default function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
+  const [openComplaints, setOpenComplaints] = useState(null);
+  const [recentMessages, setRecentMessages] = useState([]);
+
   useEffect(() => {
     let ignore = false;
     async function load() {
@@ -43,6 +56,30 @@ export default function SuperAdminDashboard() {
     load();
     return () => { ignore = true; };
   }, []);
+
+  // Live refresh, independent of the (heavier, one-shot) dashboard summary
+  // load above — keeps the "Open complaints" stat and the message preview
+  // current without re-querying every institution/course/student count.
+  const fetchComplaintStats = useCallback(async () => {
+    try {
+      const stats = await complaintService.getStats();
+      setOpenComplaints(stats.open ?? 0);
+    } catch {
+      // silent on background polls
+    }
+  }, []);
+
+  const fetchRecentMessages = useCallback(async () => {
+    try {
+      const data = await complaintService.list({ status: 'OPEN' });
+      setRecentMessages(data.slice(0, 5));
+    } catch {
+      // silent on background polls
+    }
+  }, []);
+
+  usePolling(fetchComplaintStats, MESSAGES_POLL_MS);
+  usePolling(fetchRecentMessages, MESSAGES_POLL_MS);
 
   if (loading) {
     return (
@@ -80,7 +117,7 @@ export default function SuperAdminDashboard() {
     { label: 'Educators',    value: summary.total_educators,    icon: GraduationCap },
     { label: 'Courses',      value: summary.total_courses,      icon: BookOpen },
     { label: 'Active users', value: summary.total_users,        icon: Activity },
-    { label: 'Open complaints', value: summary.total_complaints, icon: MessageSquareWarning },
+    { label: 'Open complaints', value: openComplaints ?? summary.total_complaints, icon: MessageSquareWarning },
   ];
 
   return (
@@ -152,7 +189,51 @@ export default function SuperAdminDashboard() {
         </Card>
       </motion.div>
 
-      <motion.div variants={fadeUp} initial="hidden" animate="show" custom={3} className="mt-10">
+      <motion.div
+        variants={fadeUp} initial="hidden" animate="show" custom={3}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10"
+      >
+        <Card padding="p-0" className="overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-ink/[0.06]">
+            <h2 className="text-sm font-semibold text-ink flex items-center gap-2">
+              <Inbox className="w-4 h-4 text-ink-faint" />
+              Recent messages
+            </h2>
+            <Link to="/superadmin/messages" className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1 font-medium">
+              View all <ArrowRight size={12} />
+            </Link>
+          </div>
+          {recentMessages.length === 0 ? (
+            <EmptyState icon={Inbox} title="No open messages" message="Complaints and help requests will show up here." />
+          ) : (
+            <div className="divide-y divide-ink/[0.05]">
+              {recentMessages.map((m) => {
+                const typeBadge = TYPE_BADGE[m.type] ?? TYPE_BADGE.HELP;
+                return (
+                  <Link
+                    key={m.id}
+                    to="/superadmin/messages"
+                    className="flex items-start justify-between gap-3 px-5 py-3 hover:bg-ink/[0.02] transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-sm font-medium text-ink truncate">{m.subject}</p>
+                        <Badge tone={typeBadge.tone}>{typeBadge.label}</Badge>
+                      </div>
+                      <p className="text-xs text-ink-faint truncate">
+                        {m.submitted_by.username} · {m.submitted_by.email}
+                      </p>
+                    </div>
+                    <span className="text-[11px] text-ink-faint whitespace-nowrap shrink-0">
+                      {new Date(m.created_at).toLocaleDateString()}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
         <Card>
           <h2 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
             <Activity className="w-4 h-4 text-ink-faint" />

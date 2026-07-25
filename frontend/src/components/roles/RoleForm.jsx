@@ -61,7 +61,7 @@ export default function RoleForm({ editingRole, permissionGroups, onSuccess, onC
               className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors capitalize ${
                 roleName === r
                   ? "bg-brand-600 text-white border-brand-600"
-                  : "bg-white text-brand-700 border-ink/10 hover:border-brand-300"
+                  : "bg-surface text-brand-700 border-ink/10 hover:border-brand-300"
               }`}
             >
               {r}
@@ -72,7 +72,7 @@ export default function RoleForm({ editingRole, permissionGroups, onSuccess, onC
             className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               roleName === "custom"
                 ? "bg-brand-600 text-white border-brand-600"
-                : "bg-white text-brand-700 border-ink/10 hover:border-brand-300"
+                : "bg-surface text-brand-700 border-ink/10 hover:border-brand-300"
             }`}
           >
             + Custom
@@ -98,7 +98,7 @@ export default function RoleForm({ editingRole, permissionGroups, onSuccess, onC
       </div>
 
       {error && (
-        <p className="text-sm text-danger bg-red-50 border border-red-200 rounded-lg px-4 py-2">{error}</p>
+        <p className="text-sm text-danger bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg px-4 py-2">{error}</p>
       )}
 
       <div className="flex items-center gap-3 pt-4 border-t border-ink/[0.06]">

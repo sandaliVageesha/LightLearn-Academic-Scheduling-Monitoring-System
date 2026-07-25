@@ -5,7 +5,9 @@ roles / permissions / roles_permissions tables (institutions/models.py).
 SUPER_ADMIN is treated as platform-level and bypasses both permission
 and institution-scoping checks everywhere.
 """
-from institutions.models import RolePermission
+from institutions.models import (
+    RolePermission, Institution, Manager, Educator, Student, Guardian, StudentGuardian,
+)
 
 
 def load_permissions(user):
@@ -80,6 +82,41 @@ def scoped_institution_filter(user, field='institution_id'):
 
     inst_id = resolve_institution_id(user)
     return {field: inst_id} if inst_id else {f'{field}__in': []}
+
+
+def institution_member_user_ids(institution_ids):
+    """
+    All User ids "enrolled in" the given institutions: the owner(s), plus
+    every manager/educator/student/guardian attached to them. Used to scope
+    audit/login-activity views to a single OWNER's institution(s).
+    """
+    if not institution_ids:
+        return []
+
+    ids = set(
+        Institution.objects.filter(id__in=institution_ids)
+        .values_list('owner_id', flat=True)
+    )
+    ids.update(
+        Manager.objects.filter(institution_id__in=institution_ids)
+        .values_list('user_id', flat=True)
+    )
+    ids.update(
+        Educator.objects.filter(institution_id__in=institution_ids)
+        .exclude(user_id=None).values_list('user_id', flat=True)
+    )
+    ids.update(
+        Student.objects.filter(institution_id__in=institution_ids, is_deleted=False)
+        .exclude(user_id=None).values_list('user_id', flat=True)
+    )
+    guardian_ids = StudentGuardian.objects.filter(
+        student__institution_id__in=institution_ids, student__is_deleted=False,
+    ).values_list('guardian_id', flat=True)
+    ids.update(
+        Guardian.objects.filter(id__in=guardian_ids)
+        .exclude(user_id=None).values_list('user_id', flat=True)
+    )
+    return list(ids)
 
 
 def is_institution_allowed(user, institution_id):

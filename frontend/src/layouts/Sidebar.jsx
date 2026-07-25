@@ -1,58 +1,74 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Building2, BookOpen, Users,
   GraduationCap, Layers3, Settings, User, LogOut,
   FileText, TrendingUp, Menu, X, ShieldCheck,
-  HelpCircle, MessageSquare, ClipboardList,
+  HelpCircle, MessageSquare, ClipboardList, Wrench, BarChart3, Bell,
 } from 'lucide-react';
 import logo from '../assets/logoll.png';
 import { getStoredUser, clearSession } from '../services/authStorage';
 import complaintService from '../services/complaintService';
 import contactService from '../services/contactService';
+import notificationService from '../services/notificationService';
+import usePolling from '../hooks/usePolling';
+
+const MESSAGES_POLL_MS = 10000;
+const NOTIFICATIONS_POLL_MS = 10000;
 
 const NAV_ITEMS = {
   SUPER_ADMIN: [
-    { label: 'Dashboard',     path: '/dashboard/super-admin' },
-    { label: 'Institutions',  path: '/institutions' },
-    { label: 'Messages',      path: '/superadmin/messages' },
-    { label: 'Settings',      path: '/superadmin/settings' },
-    { label: 'Profile',       path: '/superadmin/profile' },
+    { label: 'Dashboard',        path: '/dashboard/super-admin' },
+    { label: 'Institutions',     path: '/institutions' },
+    { label: 'Analytics',        path: '/superadmin/analytics' },
+    { label: 'Roles',            path: '/superadmin/roles' },
+    { label: 'Complaints & Help', path: '/superadmin/messages' },
+    { label: 'Maintenance',      path: '/superadmin/maintenance' },
+    { label: 'Notifications',    path: '/notifications' },
+    { label: 'Settings',         path: '/superadmin/settings' },
+    { label: 'Profile',          path: '/superadmin/profile' },
   ],
   OWNER: [
-    { label: 'Dashboard', path: '/dashboard/owner' },
-    { label: 'Managers',  path: '/managers' },
-    { label: 'Roles',     path: '/roles' },
-    { label: 'Help',      path: '/help' },
-    { label: 'Profile',   path: '/profile' },
+    { label: 'Dashboard',     path: '/dashboard/owner' },
+    { label: 'Managers',      path: '/managers' },
+    { label: 'Users',         path: '/owner/users' },
+    { label: 'Roles',         path: '/roles' },
+    { label: 'Maintenance',   path: '/owner/maintenance' },
+    { label: 'Notifications', path: '/notifications' },
+    { label: 'Help',          path: '/help' },
+    { label: 'Profile',       path: '/profile' },
   ],
   MANAGER: [
-    { label: 'Dashboard', path: '/dashboard/manager' },
-    { label: 'Courses',   path: '/courses' },
-    { label: 'Educators', path: '/educators' },
-    { label: 'Students',  path: '/students' },
-    { label: 'Batches',   path: '/batches' },
-    { label: 'Help',      path: '/help' },
-    { label: 'Profile',   path: '/profile' },
+    { label: 'Dashboard',     path: '/dashboard/manager' },
+    { label: 'Courses',       path: '/courses' },
+    { label: 'Educators',     path: '/educators' },
+    { label: 'Students',      path: '/students' },
+    { label: 'Batches',       path: '/batches' },
+    { label: 'Notifications', path: '/notifications' },
+    { label: 'Help',          path: '/help' },
+    { label: 'Profile',       path: '/profile' },
   ],
   EDUCATOR: [
-    { label: 'Dashboard',  path: '/dashboard/educator' },
-    { label: 'Activities', path: '/educator/activities' },
-    { label: 'Help',       path: '/help' },
-    { label: 'Profile',    path: '/profile' },
+    { label: 'Dashboard',     path: '/dashboard/educator' },
+    { label: 'Activities',    path: '/educator/activities' },
+    { label: 'Notifications', path: '/notifications' },
+    { label: 'Help',          path: '/help' },
+    { label: 'Profile',       path: '/profile' },
   ],
   STUDENT: [
-    { label: 'Dashboard',   path: '/dashboard/student' },
-    { label: 'My Courses',  path: '/my-courses' },
-    { label: 'Progress',    path: '/progress' },
-    { label: 'Help',        path: '/help' },
-    { label: 'Profile',     path: '/profile' },
+    { label: 'Dashboard',     path: '/dashboard/student' },
+    { label: 'My Courses',    path: '/my-courses' },
+    { label: 'Progress',      path: '/progress' },
+    { label: 'Notifications', path: '/notifications' },
+    { label: 'Help',          path: '/help' },
+    { label: 'Profile',       path: '/profile' },
   ],
   PARENT: [
-    { label: 'Dashboard', path: '/dashboard/parent' },
-    { label: 'Help',      path: '/help' },
-    { label: 'Profile',   path: '/profile' },
+    { label: 'Dashboard',     path: '/dashboard/parent' },
+    { label: 'Notifications', path: '/notifications' },
+    { label: 'Help',          path: '/help' },
+    { label: 'Profile',       path: '/profile' },
   ],
 };
 
@@ -79,13 +95,17 @@ const ICONS = {
   Progress:      TrendingUp,
   Schedule:      LayoutDashboard,
   Managers:      Users,
+  Users:         Users,
   Roles:         ShieldCheck,
   Help:          HelpCircle,
-  Messages:      MessageSquare,
+  'Complaints & Help': MessageSquare,
   Activities:    ClipboardList,
+  Maintenance:   Wrench,
+  Analytics:     BarChart3,
+  Notifications: Bell,
 };
 
-const SECONDARY = new Set(['Profile', 'Settings', 'Help']);
+const SECONDARY = new Set(['Profile', 'Settings', 'Help', 'Notifications']);
 
 function SidebarContent({ onClose }) {
   const navigate = useNavigate();
@@ -100,17 +120,37 @@ function SidebarContent({ onClose }) {
   const secondaryItems = items.filter((i) => SECONDARY.has(i.label));
 
   const [unopenedMessages, setUnopenedMessages] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
-  useEffect(() => {
-    if (role !== 'SUPER_ADMIN') return;
-    let ignore = false;
-    Promise.all([complaintService.getStats(), contactService.getStats()])
-      .then(([complaintStats, inquiryStats]) => {
-        if (!ignore) setUnopenedMessages((complaintStats.open ?? 0) + (inquiryStats.new ?? 0));
-      })
-      .catch(() => {});
-    return () => { ignore = true; };
-  }, [role]);
+  const fetchUnopenedMessages = useCallback(async () => {
+    try {
+      const [complaintStats, inquiryStats] = await Promise.all([
+        complaintService.getStats(),
+        contactService.getStats(),
+      ]);
+      setUnopenedMessages((complaintStats.open ?? 0) + (inquiryStats.new ?? 0));
+    } catch {
+      // silent on background polls
+    }
+  }, []);
+
+  const fetchUnreadNotifications = useCallback(async () => {
+    try {
+      const data = await notificationService.list();
+      setUnreadNotifications(data.unread_count ?? 0);
+    } catch {
+      // silent on background polls
+    }
+  }, []);
+
+  usePolling(fetchUnopenedMessages, MESSAGES_POLL_MS, role !== 'SUPER_ADMIN');
+  usePolling(fetchUnreadNotifications, NOTIFICATIONS_POLL_MS);
+
+  function badgeFor(label) {
+    if (label === 'Complaints & Help') return unopenedMessages;
+    if (label === 'Notifications') return unreadNotifications;
+    return 0;
+  }
 
   function handleLogout() {
     clearSession();
@@ -169,7 +209,7 @@ function SidebarContent({ onClose }) {
               key={item.path}
               item={item}
               onClose={onClose}
-              badge={item.label === 'Messages' ? unopenedMessages : 0}
+              badge={badgeFor(item.label)}
             />
           ))}
 
@@ -177,7 +217,7 @@ function SidebarContent({ onClose }) {
             <>
               <div className="h-px bg-white/15 my-2 mx-1" />
               {secondaryItems.map((item) => (
-                <NavItem key={item.path} item={item} onClose={onClose} />
+                <NavItem key={item.path} item={item} onClose={onClose} badge={badgeFor(item.label)} />
               ))}
             </>
           )}

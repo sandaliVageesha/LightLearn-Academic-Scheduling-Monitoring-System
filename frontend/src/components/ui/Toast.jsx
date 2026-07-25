@@ -6,9 +6,9 @@ const ToastContext = createContext(null);
 
 const ICONS = { success: CheckCircle2, error: XCircle, info: Info };
 const TONES = {
-  success: 'bg-white border-emerald-200 text-emerald-700 [&_svg]:text-success',
-  error:   'bg-white border-red-200 text-red-700 [&_svg]:text-danger',
-  info:    'bg-white border-brand-200 text-brand-700 [&_svg]:text-brand-600',
+  success: 'bg-surface border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 [&_svg]:text-success',
+  error:   'bg-surface border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 [&_svg]:text-danger',
+  info:    'bg-surface border-brand-200 dark:border-brand-500/30 text-brand-700 dark:text-brand-300 [&_svg]:text-brand-600',
 };
 
 export function ToastProvider({ children }) {

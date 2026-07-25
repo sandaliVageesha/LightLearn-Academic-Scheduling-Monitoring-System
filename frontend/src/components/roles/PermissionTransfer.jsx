@@ -5,7 +5,7 @@ const formatName = (name) =>
   name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 const Panel = ({ title, items, checkedSet, setChecked, search, setSearch, count, onToggle }) => (
-  <div className="flex-1 flex flex-col border border-ink/10 rounded-xl overflow-hidden bg-white">
+  <div className="flex-1 flex flex-col border border-ink/10 rounded-xl overflow-hidden bg-surface">
     <div className="px-4 py-3 bg-brand-50 border-b border-ink/[0.06] flex items-center justify-between">
       <span className="text-xs font-semibold text-brand-700 uppercase tracking-wider">{title}</span>
       <span className="text-xs text-brand-500 tabular-nums">{count}</span>
@@ -16,7 +16,7 @@ const Panel = ({ title, items, checkedSet, setChecked, search, setSearch, count,
         placeholder="Search…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full text-sm px-2 py-1.5 border border-ink/10 rounded-lg outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 bg-white"
+        className="w-full text-sm px-2 py-1.5 border border-ink/10 rounded-lg outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 bg-surface"
       />
     </div>
     <div className="flex-1 overflow-y-auto scroll-thin max-h-64">
@@ -125,7 +125,7 @@ export default function PermissionTransfer({ groups = [], selected, onChange }) 
           <select
             value={activeModule}
             onChange={(e) => handleModuleChange(e.target.value)}
-            className="appearance-none pl-3 pr-8 py-1.5 text-sm border border-ink/10 rounded-lg bg-white text-brand-700 font-medium
+            className="appearance-none pl-3 pr-8 py-1.5 text-sm border border-ink/10 rounded-lg bg-surface text-brand-700 font-medium
                        outline-none focus:border-brand-500 cursor-pointer transition-colors hover:border-brand-300"
           >
             <option value="__all__">All modules ({allPerms.length})</option>
@@ -157,13 +157,13 @@ export default function PermissionTransfer({ groups = [], selected, onChange }) 
 
         <div className="flex flex-col items-center justify-center gap-2 pt-4">
           <button onClick={moveAllRight} title="Add all visible"
-            className="w-8 h-8 rounded-lg border border-ink/10 bg-white hover:bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-bold transition-colors">»</button>
+            className="w-8 h-8 rounded-lg border border-ink/10 bg-surface hover:bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-bold transition-colors">»</button>
           <button onClick={moveRight} disabled={leftChecked.size === 0} title="Add selected"
-            className="w-8 h-8 rounded-lg border border-ink/10 bg-white hover:bg-brand-50 text-brand-600 flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed">›</button>
+            className="w-8 h-8 rounded-lg border border-ink/10 bg-surface hover:bg-brand-50 text-brand-600 flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed">›</button>
           <button onClick={moveLeft} disabled={rightChecked.size === 0} title="Remove selected"
-            className="w-8 h-8 rounded-lg border border-ink/10 bg-white hover:bg-brand-50 text-brand-600 flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed">‹</button>
+            className="w-8 h-8 rounded-lg border border-ink/10 bg-surface hover:bg-brand-50 text-brand-600 flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed">‹</button>
           <button onClick={moveAllLeft} title="Remove all visible"
-            className="w-8 h-8 rounded-lg border border-ink/10 bg-white hover:bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-bold transition-colors">«</button>
+            className="w-8 h-8 rounded-lg border border-ink/10 bg-surface hover:bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-bold transition-colors">«</button>
         </div>
 
         <Panel title="Assigned" items={assigned} checkedSet={rightChecked} setChecked={setRightChecked}

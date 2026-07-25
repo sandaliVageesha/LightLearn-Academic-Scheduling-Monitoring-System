@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from institutions.views import JWTView
-from institutions.models import Student, Guardian
+from institutions.models import Student, Guardian, StudentGuardian
 from institutions.access import scoped_institution_filter, is_institution_allowed, load_permissions
 from institutions.jwt_utils import generate_access_token, generate_refresh_token
 from .serializers import StudentSerializer, StudentListSerializer, GuardianSerializer
@@ -217,10 +217,21 @@ class StudentDetailView(JWTView):
 
 
 class GuardianListCreateView(JWTView):
+    """
+    GET is scoped to guardians linked to a student in the caller's own
+    institution(s) — e.g. a MANAGER creating/editing a student should only
+    see that institution's guardians, not every guardian platform-wide.
+    """
     permission_map = {'GET': 'view_guardian', 'POST': 'manage_guardian'}
 
     def get(self, request):
-        guardians  = StudentService.list_guardians()
+        student_filter = scoped_institution_filter(request.current_user, field='institution_id')
+        guardian_ids = StudentGuardian.objects.filter(
+            student__is_deleted=False,
+            **{f'student__{key}': value for key, value in student_filter.items()}
+        ).values_list('guardian_id', flat=True).distinct()
+
+        guardians  = Guardian.objects.filter(id__in=guardian_ids).order_by('name')
         serializer = GuardianSerializer(guardians, many=True)
         return Response(serializer.data)
 

@@ -23,7 +23,7 @@ function InputField({ label, icon: Icon, type = "text", value, onChange, disable
           onChange={onChange}
           disabled={disabled}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-ink/10 bg-white
+          className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-ink/10 bg-surface
                      outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500
                      disabled:bg-paper-soft disabled:text-ink-faint transition-all"
         />
@@ -44,7 +44,7 @@ function PasswordField({ label, value, onChange, placeholder }) {
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border border-ink/10 bg-white
+          className="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border border-ink/10 bg-surface
                      outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500"
         />
         <button

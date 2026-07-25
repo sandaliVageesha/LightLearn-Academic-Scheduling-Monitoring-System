@@ -32,6 +32,12 @@ import RolesPermissions from './pages/RolesPermissions';
 import UserProfile from './pages/UserProfile';
 import HelpPage from './pages/HelpPage';
 import Messages from './pages/superadmin/Messages';
+import Maintenance from './pages/superadmin/Maintenance';
+import OwnerMaintenance from './pages/owner/Maintenance';
+import OwnerUsers from './pages/owner/Users';
+import Analytics from './pages/superadmin/Analytics';
+import SuperAdminRoles from './pages/superadmin/Roles';
+import Notifications from './pages/Notifications';
 
 
 
@@ -139,6 +145,18 @@ function App() {
           <Route path="/help" element={<HelpPage />} />
 
           <Route path="/superadmin/messages" element={<Messages />} />
+
+          <Route path="/superadmin/maintenance" element={<Maintenance />} />
+
+          <Route path="/owner/maintenance" element={<OwnerMaintenance />} />
+
+          <Route path="/owner/users" element={<OwnerUsers />} />
+
+          <Route path="/superadmin/analytics" element={<Analytics />} />
+
+          <Route path="/superadmin/roles" element={<SuperAdminRoles />} />
+
+          <Route path="/notifications" element={<Notifications />} />
 
         </Route>
 

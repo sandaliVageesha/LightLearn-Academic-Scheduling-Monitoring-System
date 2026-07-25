@@ -17,7 +17,7 @@ export default function Tabs({ items, value, onChange, layoutId = 'tabs-active',
               <motion.span
                 layoutId={layoutId}
                 transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0 bg-white rounded-xl shadow-soft -z-10"
+                className="absolute inset-0 bg-surface rounded-xl shadow-soft -z-10"
               />
             )}
             {Icon && <Icon size={14} className="shrink-0" />}

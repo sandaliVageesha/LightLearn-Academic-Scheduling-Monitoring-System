@@ -5,6 +5,7 @@ from institutions.models import User
 from institutions.models import ActivityLog
 from institutions.models import Role
 from institutions.models import Institution
+from institutions.notification_service import NotificationService
 
 class StudentService:
 
@@ -63,6 +64,13 @@ class StudentService:
         ActivityLog.objects.create(
             module='STUDENT', action='CREATE',
             description=f"Student '{student.name}' self-registered at {institution.name}."
+        )
+
+        NotificationService.notify_institution_staff(
+            institution.id,
+            title='Student needs approval',
+            message=f"'{student.name}' self-registered at {institution.name} and needs a batch assigned.",
+            link='/students',
         )
 
         return student, user
@@ -198,6 +206,13 @@ class StudentService:
             description=f"Student '{student.name}' was registered."
         )
 
+        NotificationService.notify_institution_staff(
+            institution_id,
+            title='Student added',
+            message=f"'{student.name}' was added as a student.",
+            link='/students',
+        )
+
         return student
 
     @staticmethod
@@ -306,7 +321,3 @@ class StudentService:
             user  = user,
         )
         return guardian
-
-    @staticmethod
-    def list_guardians():
-        return Guardian.objects.all().order_by('name')

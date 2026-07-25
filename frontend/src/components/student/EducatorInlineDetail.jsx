@@ -56,7 +56,7 @@ export default function EducatorInlineDetail({ educatorId, educatorName, onClose
 
         <button
           onClick={onClose}
-          className="w-7 h-7 rounded-md border border-ink/10 bg-white text-ink-faint hover:text-ink hover:border-ink/20 flex items-center justify-center cursor-pointer transition-colors"
+          className="w-7 h-7 rounded-md border border-ink/10 bg-surface text-ink-faint hover:text-ink hover:border-ink/20 flex items-center justify-center cursor-pointer transition-colors"
         >
           <X size={14} />
         </button>
@@ -81,7 +81,7 @@ export default function EducatorInlineDetail({ educatorId, educatorName, onClose
               { label: 'Courses', value: detail.total_courses },
               { label: 'Students', value: detail.total_students },
             ].map((s, i) => (
-              <div key={i} className="bg-white border border-ink/[0.06] rounded-lg px-3 py-2.5">
+              <div key={i} className="bg-surface border border-ink/[0.06] rounded-lg px-3 py-2.5">
                 <p className="text-[10px] font-semibold tracking-[0.08em] uppercase text-ink-faint">{s.label}</p>
                 <p className="text-2xl font-display font-light text-ink leading-none mt-1">{s.value}</p>
               </div>
@@ -93,7 +93,7 @@ export default function EducatorInlineDetail({ educatorId, educatorName, onClose
           </p>
           <div className="flex flex-col gap-1">
             {detail.courses.map((c, i) => (
-              <div key={i} className={`flex items-center justify-between px-3 py-2 rounded-md ${i % 2 === 0 ? 'bg-white' : 'bg-transparent'}`}>
+              <div key={i} className={`flex items-center justify-between px-3 py-2 rounded-md ${i % 2 === 0 ? 'bg-surface' : 'bg-transparent'}`}>
                 <div>
                   <p className="text-[13px] text-ink">{c.course_name}</p>
                   <p className="text-[11px] text-ink-faint">{c.course_code} · {c.institution}</p>

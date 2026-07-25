@@ -450,6 +450,12 @@ class ActivityLog(models.Model):
         ('STUDENT',     'Student'),
     ]
 
+    # Who performed the action. Null for actions with no authenticated actor
+    # (e.g. a prospective owner self-registering their institution).
+    actor       = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='activity_logs',
+    )
     module      = models.CharField(max_length=20, choices=MODULE_CHOICES)
     action      = models.CharField(max_length=10, choices=ACTION_CHOICES)
     description = models.CharField(max_length=255)
@@ -461,6 +467,35 @@ class ActivityLog(models.Model):
 
     def __str__(self):
         return f"[{self.module}] {self.action} — {self.description}"
+
+
+# ---------------------------------------------------------------------------
+# LoginActivity — audit trail of login/logout events (super admin only)
+# ---------------------------------------------------------------------------
+
+class LoginActivity(models.Model):
+    ACTION_CHOICES = [
+        ('LOGIN',  'Login'),
+        ('LOGOUT', 'Logout'),
+    ]
+
+    # Kept as a nullable FK + a plain email field: the user row could later
+    # be deleted, but the audit trail should still show who it was.
+    user       = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='login_activities',
+    )
+    email      = models.EmailField()
+    action     = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'login_activities'
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.email} — {self.action} @ {self.timestamp}"
 
 
 # ---------------------------------------------------------------------------
@@ -546,3 +581,27 @@ class ContactInquiry(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} <{self.email}>"
+
+
+# ---------------------------------------------------------------------------
+# Notification — per-user alerts, surfaced in the dashboard navbar bell
+# ---------------------------------------------------------------------------
+
+class Notification(models.Model):
+    recipient  = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='notifications'
+    )
+    title      = models.CharField(max_length=150)
+    message    = models.CharField(max_length=255, blank=True)
+    # Frontend route to navigate to when the notification is clicked, e.g.
+    # "/superadmin/messages". Blank if the notification isn't actionable.
+    link       = models.CharField(max_length=255, blank=True)
+    is_read    = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'notifications'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.recipient.email}] {self.title}"

@@ -1,4 +1,4 @@
-const fieldClass = `w-full px-3.5 py-2.5 border border-ink/10 rounded-xl text-sm text-ink bg-white
+const fieldClass = `w-full px-3.5 py-2.5 border border-ink/10 rounded-xl text-sm text-ink bg-surface
   outline-none transition-all placeholder-ink-faint/70
   focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10`;
 

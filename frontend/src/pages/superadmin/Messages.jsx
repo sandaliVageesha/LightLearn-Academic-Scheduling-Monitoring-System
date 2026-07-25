@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Inbox, MessageSquareWarning, Send, Mail, CheckCircle2 } from 'lucide-react';
 import complaintService from '../../services/complaintService';
 import contactService from '../../services/contactService';
+import usePolling from '../../hooks/usePolling';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import PageHeader from '../../components/ui/PageHeader';
@@ -42,6 +43,8 @@ const INQUIRY_STATUS_BADGE = {
   REVIEWED: { tone: 'success', label: 'Reviewed' },
 };
 
+const POLL_MS = 8000;
+
 export default function Messages() {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState('messages');
@@ -53,50 +56,55 @@ export default function Messages() {
   const [selected, setSelected] = useState(null);
   const [draft, setDraft] = useState({ status: 'OPEN', reply: '' });
   const [saving, setSaving] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
 
   const [inquiries, setInquiries] = useState([]);
   const [inquiriesLoading, setInquiriesLoading] = useState(true);
   const [selectedInquiry, setSelectedInquiry] = useState(null);
   const [markingReviewed, setMarkingReviewed] = useState(false);
-  const [inquiryReloadKey, setInquiryReloadKey] = useState(0);
 
+  const loadMessages = useCallback(async () => {
+    try {
+      const data = await complaintService.list({
+        status: statusFilter || undefined,
+        type: typeFilter || undefined,
+      });
+      setMessages(data);
+    } catch {
+      // silent on background polls; first-load failure surfaces via loading below
+    } finally {
+      setLoading(false);
+    }
+  }, [statusFilter, typeFilter]);
+
+  const loadInquiries = useCallback(async () => {
+    try {
+      const data = await contactService.list();
+      setInquiries(data);
+    } catch {
+      // silent on background polls
+    } finally {
+      setInquiriesLoading(false);
+    }
+  }, []);
+
+  // usePolling's own "run immediately" effect only re-fires when its
+  // paused/interval args change, not when the filters do — so an explicit
+  // reload here gives instant feedback on filter changes, on top of the
+  // periodic background refresh below (which always reads the latest
+  // filters via usePolling's callback ref).
   useEffect(() => {
-    let ignore = false;
-    async function load() {
+    async function run() {
       setLoading(true);
-      try {
-        const data = await complaintService.list({
-          status: statusFilter || undefined,
-          type: typeFilter || undefined,
-        });
-        if (!ignore) setMessages(data);
-      } catch {
-        if (!ignore) toast.error('Failed to load messages.');
-      } finally {
-        if (!ignore) setLoading(false);
-      }
+      await loadMessages();
     }
-    load();
-    return () => { ignore = true; };
-  }, [statusFilter, typeFilter, reloadKey]);
+    run();
+  }, [loadMessages]);
 
-  useEffect(() => {
-    let ignore = false;
-    async function load() {
-      setInquiriesLoading(true);
-      try {
-        const data = await contactService.list();
-        if (!ignore) setInquiries(data);
-      } catch {
-        if (!ignore) toast.error('Failed to load website inquiries.');
-      } finally {
-        if (!ignore) setInquiriesLoading(false);
-      }
-    }
-    load();
-    return () => { ignore = true; };
-  }, [inquiryReloadKey]);
+  // Live refresh so newly submitted complaints/help requests and website
+  // inquiries show up without a manual reload. Paused while a modal is open
+  // so an in-progress reply/review isn't yanked out from under the admin.
+  usePolling(loadMessages, POLL_MS, Boolean(selected));
+  usePolling(loadInquiries, POLL_MS, Boolean(selectedInquiry));
 
   function openMessage(m) {
     setSelected(m);
@@ -109,7 +117,7 @@ export default function Messages() {
       await complaintService.respond(selected.id, draft);
       toast.success('Response sent.');
       setSelected(null);
-      setReloadKey((k) => k + 1);
+      loadMessages();
     } catch {
       toast.error('Failed to send response.');
     } finally {
@@ -123,7 +131,7 @@ export default function Messages() {
       await contactService.markStatus(selectedInquiry.id, 'REVIEWED');
       toast.success('Marked as reviewed.');
       setSelectedInquiry(null);
-      setInquiryReloadKey((k) => k + 1);
+      loadInquiries();
     } catch {
       toast.error('Failed to update inquiry.');
     } finally {
@@ -133,7 +141,7 @@ export default function Messages() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <PageHeader title="Messages" subtitle="Help requests, complaints and website inquiries from across all institutions" />
+      <PageHeader title="Complaints & Help" subtitle="Help requests, complaints and website inquiries from across all institutions" />
 
       <Tabs
         value={activeTab}
@@ -152,7 +160,7 @@ export default function Messages() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 text-sm rounded-xl border border-ink/10 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+          className="px-3 py-2 text-sm rounded-xl border border-ink/10 bg-surface focus:outline-none focus:ring-2 focus:ring-brand-500/30"
         >
           <option value="">All statuses</option>
           {STATUS_OPTIONS.map((s) => (
@@ -163,7 +171,7 @@ export default function Messages() {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-3 py-2 text-sm rounded-xl border border-ink/10 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+          className="px-3 py-2 text-sm rounded-xl border border-ink/10 bg-surface focus:outline-none focus:ring-2 focus:ring-brand-500/30"
         >
           <option value="">All types</option>
           <option value="COMPLAINT">Complaint</option>

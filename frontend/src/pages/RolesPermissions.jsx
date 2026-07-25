@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, ShieldCheck, KeyRound } from "lucide-react";
+import { Pencil, Trash2, ShieldCheck, KeyRound } from "lucide-react";
 import RoleForm from "../components/roles/RoleForm";
 import { fetchRoles, fetchPermissions, deleteRole } from "../services/roleService";
 import PageHeader from "../components/ui/PageHeader";
 import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
-import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import StatCard from "../components/StatCard";
@@ -43,6 +42,11 @@ export default function RolesPermissions() {
     return () => { ignore = true; };
   }, []);
 
+  const visibleRoles = useMemo(
+    () => roles.filter((r) => r.name.toUpperCase() !== 'SUPER_ADMIN'),
+    [roles]
+  );
+
   const stats = useMemo(() => {
     const totalPermissions = permissionGroups.reduce((sum, g) => sum + g.permissions.length, 0);
     return { roles: roles.length, permissions: totalPermissions };
@@ -54,11 +58,6 @@ export default function RolesPermissions() {
       return exists ? prev.map((r) => (r.id === saved.id ? saved : r)) : [...prev, saved];
     });
     closeForm();
-  };
-
-  const openCreate = () => {
-    setEditingRole(null);
-    setFormOpen(true);
   };
 
   const handleEdit = (role) => {
@@ -96,13 +95,6 @@ export default function RolesPermissions() {
         <PageHeader
           title="Roles & permissions"
           subtitle="Define roles and control what each one can access"
-          actions={
-            activeTab === 'roles' && !loading && can('create_role') ? (
-              <Button variant="brand" size="md" icon={Plus} onClick={openCreate}>
-                New role
-              </Button>
-            ) : undefined
-          }
         />
 
         <div className="grid sm:grid-cols-2 gap-4">
@@ -135,7 +127,7 @@ export default function RolesPermissions() {
                 <Card padding="p-0" className="overflow-hidden">
                   <div className="px-6 py-4 border-b border-ink/[0.06]">
                     <p className="text-xs font-semibold tracking-widest text-ink-faint uppercase">
-                      {roles.length} role{roles.length !== 1 ? "s" : ""}
+                      {visibleRoles.length} role{visibleRoles.length !== 1 ? "s" : ""}
                     </p>
                   </div>
                   <table className="w-full text-sm">
@@ -147,7 +139,7 @@ export default function RolesPermissions() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-ink/[0.05]">
-                      {roles.map((role) => (
+                      {visibleRoles.map((role) => (
                         <tr key={role.id} className="group hover:bg-ink/[0.02] transition-colors">
                           <td className="px-6 py-3">
                             <div className="flex items-center gap-3">
@@ -214,7 +206,7 @@ export default function RolesPermissions() {
       <Modal
         open={formOpen}
         onClose={closeForm}
-        title={editingRole ? "Edit role" : "Create new role"}
+        title="Edit role"
         width="max-w-2xl"
       >
         <RoleForm

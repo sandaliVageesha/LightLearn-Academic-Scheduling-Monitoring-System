@@ -97,7 +97,7 @@ export default function WorkloadSummary() {
       <BarChartCard title="Workload this week" data={chartData} color="#00A0F5" height={180} />
 
       {conflictPairs.length > 0 && (
-        <Card className="border-danger/20 bg-red-50/40">
+        <Card className="border-danger/20 bg-red-50/40 dark:bg-red-500/10">
           <h3 className="text-sm font-semibold text-ink flex items-center gap-2 mb-3">
             <AlertTriangle className="w-4 h-4 text-danger" />
             Scheduling conflicts

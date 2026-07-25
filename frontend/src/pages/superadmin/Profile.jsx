@@ -28,7 +28,7 @@ function InputField({ label, icon: Icon, type = "text", value, onChange, disable
           onChange={onChange}
           disabled={disabled}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-ink/10 bg-white focus:outline-none focus:ring-2 focus:ring-[#395886]/30 disabled:bg-paper-soft disabled:text-ink-faint transition-all"
+          className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-ink/10 bg-surface focus:outline-none focus:ring-2 focus:ring-[#395886]/30 disabled:bg-paper-soft disabled:text-ink-faint transition-all"
         />
       </div>
     </div>
@@ -47,7 +47,7 @@ function PasswordField({ label, value, onChange, placeholder }) {
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border border-ink/10 bg-white focus:outline-none focus:ring-2 focus:ring-[#395886]/30"
+          className="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border border-ink/10 bg-surface focus:outline-none focus:ring-2 focus:ring-[#395886]/30"
         />
         <button
           type="button"
@@ -206,7 +206,7 @@ export default function Profile() {
         </div>
 
         {/* Profile Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-ink/[0.06] p-6 mb-6">
+        <div className="bg-surface rounded-2xl shadow-sm border border-ink/[0.06] p-6 mb-6">
           <div className="flex items-center gap-5 flex-wrap">
             {/* Avatar */}
             <div className="relative">
@@ -260,7 +260,7 @@ export default function Profile() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-sm border border-ink/[0.06] overflow-hidden">
+        <div className="bg-surface rounded-2xl shadow-sm border border-ink/[0.06] overflow-hidden">
           <div className="flex border-b border-ink/[0.06] overflow-x-auto">
             {tabs.map(({ id, label, icon: Icon }) => (
               <button

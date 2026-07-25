@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Plus, Pencil, Trash2, Users, Building2, UserCog } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, UserCog } from "lucide-react";
 import api from "../services/api";
 import PageHeader from "../components/ui/PageHeader";
 import Card from "../components/ui/Card";
@@ -65,10 +65,7 @@ export default function ManagerManagement() {
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
-  const stats = useMemo(() => {
-    const institutionIds = new Set(managers.map((m) => m.institution?.id));
-    return { total: managers.length, institutions: institutionIds.size };
-  }, [managers]);
+  const stats = useMemo(() => ({ total: managers.length }), [managers]);
 
   const openCreate = () => {
     setEditing(null);
@@ -155,7 +152,6 @@ export default function ManagerManagement() {
 
         <div className="grid sm:grid-cols-2 gap-4">
           <StatCard label="Total managers" value={stats.total} tone="brand" icon={UserCog} />
-          <StatCard label="Institutions covered" value={stats.institutions} tone="ocean" icon={Building2} />
         </div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>

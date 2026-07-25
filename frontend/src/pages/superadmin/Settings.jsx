@@ -17,7 +17,7 @@ const TABS = [
 
 function SectionCard({ title, description, children }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-ink/[0.06] overflow-hidden">
+    <div className="bg-surface rounded-2xl shadow-sm border border-ink/[0.06] overflow-hidden">
       {(title || description) && (
         <div className="px-6 py-4 border-b border-ink/[0.06]">
           {title && <h3 className="text-base font-semibold text-ink">{title}</h3>}
@@ -40,7 +40,7 @@ function ToggleRow({ label, description, checked, onChange }) {
         onClick={() => onChange(!checked)}
         className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ml-4 ${checked ? "bg-brand-600" : "bg-ink/10"}`}
       >
-        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0"}`} />
+        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-surface rounded-full shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0"}`} />
       </button>
     </div>
   );
@@ -136,7 +136,7 @@ export default function Settings() {
         <div className="flex gap-6 flex-col md:flex-row">
           {/* Sidebar Nav */}
           <div className="md:w-52 shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-ink/[0.06] p-2 md:sticky md:top-6">
+            <div className="bg-surface rounded-2xl shadow-sm border border-ink/[0.06] p-2 md:sticky md:top-6">
               {TABS.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -410,14 +410,14 @@ export default function Settings() {
 
                 <SectionCard title="Danger Zone" description="Irreversible platform actions">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-red-100 bg-red-50/40">
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-red-100 dark:border-red-500/20 bg-red-50/40 dark:bg-red-500/10">
                       <div>
-                        <p className="text-sm font-medium text-red-700">Reset All Settings</p>
-                        <p className="text-xs text-red-500">Restore all settings to factory defaults</p>
+                        <p className="text-sm font-medium text-red-700 dark:text-red-400">Reset All Settings</p>
+                        <p className="text-xs text-red-500 dark:text-red-400/80">Restore all settings to factory defaults</p>
                       </div>
                       <button
                         onClick={() => showToast("Settings reset to defaults.", "warning")}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 hover:bg-red-100 dark:hover:bg-red-500/15 transition-colors"
                       >
                         Reset
                       </button>

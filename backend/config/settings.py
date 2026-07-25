@@ -109,11 +109,19 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
+    #"http://localhost:5175",
+]
+# Exposes the filename on file-download responses (e.g. the maintenance
+# report CSV) — browsers hide response headers from JS on cross-origin
+# requests unless explicitly allow-listed here.
+CORS_EXPOSE_HEADERS = [
+    "Content-Disposition",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
+    #"http://localhost:5175",
 ]
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

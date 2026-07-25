@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Users, ShieldCheck, KeyRound, ArrowRight } from "lucide-react";
-import api from "../services/api";
+import { Users, ShieldCheck, KeyRound, ArrowRight, GraduationCap, Presentation, BookOpen, Layers3, Heart } from "lucide-react";
 import { fetchRoles } from "../services/roleService";
+import ownerUsersService from "../services/ownerUsersService";
 import PageHeader from "../components/ui/PageHeader";
 import StatCard from "../components/StatCard";
 import Card from "../components/ui/Card";
@@ -25,6 +25,11 @@ const fadeUp = {
 export default function OwnerDashboard() {
   const [roles, setRoles] = useState([]);
   const [managers, setManagers] = useState([]);
+  const [studentCount, setStudentCount] = useState(0);
+  const [educatorCount, setEducatorCount] = useState(0);
+  const [parentCount, setParentCount] = useState(0);
+  const [courseCount, setCourseCount] = useState(0);
+  const [batchCount, setBatchCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -32,10 +37,15 @@ export default function OwnerDashboard() {
     let ignore = false;
     async function load() {
       try {
-        const [r, m] = await Promise.all([fetchRoles(), api.get('/managers/')]);
+        const [r, u] = await Promise.all([fetchRoles(), ownerUsersService.getAll()]);
         if (!ignore) {
           setRoles(r);
-          setManagers(m.data);
+          setManagers(u.managers);
+          setStudentCount(u.students.length);
+          setEducatorCount(u.educators.length);
+          setParentCount(u.guardians.length);
+          setCourseCount(u.course_count);
+          setBatchCount(u.batch_count);
         }
       } catch {
         if (!ignore) setError('Failed to load dashboard.');
@@ -66,10 +76,12 @@ export default function OwnerDashboard() {
   const configuredRoles = roles.filter((r) => r.permissions.length > 0).length;
   const coverage = roles.length > 0 ? Math.round((configuredRoles / roles.length) * 100) : 0;
 
-  const permissionsPerRole = roles.map((r) => ({
-    name: r.name.charAt(0).toUpperCase() + r.name.slice(1),
-    value: r.permissions.length,
-  }));
+  const permissionsPerRole = roles
+    .filter((r) => r.name.toUpperCase() !== 'SUPER_ADMIN')
+    .map((r) => ({
+      name: r.name.charAt(0).toUpperCase() + r.name.slice(1),
+      value: r.permissions.length,
+    }));
 
   const rolesCoverageChart = [
     { name: 'Configured', value: configuredRoles, color: '#00A0F5' },
@@ -82,10 +94,14 @@ export default function OwnerDashboard() {
 
       <motion.div
         variants={fadeUp} initial="hidden" animate="show" custom={0}
-        className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10"
       >
         <StatCard label="Managers" value={managers.length} tone="ocean" icon={Users} />
-        <StatCard label="Roles defined" value={roles.length} tone="violet" icon={ShieldCheck} />
+        <StatCard label="Educators" value={educatorCount} tone="success" icon={Presentation} />
+        <StatCard label="Students" value={studentCount} tone="brand" icon={GraduationCap} />
+        <StatCard label="Parents" value={parentCount} tone="danger" icon={Heart} />
+        <StatCard label="Courses" value={courseCount} tone="warning" icon={BookOpen} />
+        <StatCard label="Batches" value={batchCount} tone="ocean" icon={Layers3} />
         <StatCard
           label="Roles with permissions set"
           value={`${coverage}%`}

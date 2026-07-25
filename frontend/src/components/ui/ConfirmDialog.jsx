@@ -16,7 +16,7 @@ export default function ConfirmDialog({
     <Modal open={open} onClose={onClose} width="max-w-sm">
       <div className="flex flex-col items-center text-center gap-3 py-2">
         <div className={`w-12 h-12 rounded-full flex items-center justify-center
-          ${danger ? 'bg-red-50 text-danger' : 'bg-amber-50 text-warning'}`}>
+          ${danger ? 'bg-red-50 dark:bg-red-500/15 text-danger' : 'bg-amber-50 dark:bg-amber-500/15 text-warning'}`}>
           <AlertTriangle size={22} />
         </div>
         <h3 className="font-display font-semibold text-ink text-[1.05rem]">{title}</h3>
