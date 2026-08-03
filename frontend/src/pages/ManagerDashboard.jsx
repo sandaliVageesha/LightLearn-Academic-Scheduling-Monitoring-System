@@ -14,8 +14,10 @@ export default function ManagerDashboard() {
     async function load() {
       try {
         const result = await dashboardService.getManagerDashboard();
+        console.log(result);
         if (!ignore) setData(result);
-      } catch {
+      } catch (err) {
+        console.error(err);
         if (!ignore) setError('Failed to load dashboard.');
       } finally {
         if (!ignore) setLoading(false);
@@ -43,11 +45,11 @@ export default function ManagerDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <StatCard label="Institutions" value={summary.total_institutions} color="blue"   icon="🏫" />
-        <StatCard label="Courses"      value={summary.total_courses}      color="green"  icon="📚" />
-        <StatCard label="Educators"    value={summary.total_educators}    color="purple" icon="👨‍🏫" />
-        <StatCard label="Batches"      value={summary.total_batches}      color="orange" icon="🎓" />
-        <StatCard label="Students"     value={summary.total_students}     color="red"    icon="👤" />
+        <StatCard label="Institutions" value={summary.total_institutions} color="blue"  icon="🏫" />
+        <StatCard label="Courses"      value={summary.total_courses}       color="green"  icon="📚" />
+        <StatCard label="Educators"    value={summary.total_educators}     color="purple" icon="👨‍🏫" />
+        <StatCard label="Batches"      value={summary.total_batches}       color="orange" icon="🎓" />
+        <StatCard label="Students"     value={summary.total_students}      color="red"    icon="👤" />
       </div>
 
       {/* Charts */}
@@ -94,7 +96,14 @@ export default function ManagerDashboard() {
         <h2 className="text-sm font-semibold text-gray-500 uppercase mb-4">
           Recent Activity
         </h2>
-        <ActivityFeed activities={recent_activity} />
+        
+        {recent_activity && recent_activity.length > 0 ? (
+          <ActivityFeed activities={recent_activity} />
+        ) : (
+          <div className="text-center py-6 text-gray-400">
+            <p>No activity recorded yet.</p>
+          </div>
+        )}
       </div>
     </div>
   );

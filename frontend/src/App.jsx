@@ -23,6 +23,9 @@ import StudentDashboard from './pages/StudentDashboard';
 import ParentDashboard from './pages/ParentDashboard';
 import DashboardLayout from './layouts/DashboardLayout';
 
+import { ActivityProvider } from "./context/ActivityContext";
+import { ActivityManagement } from './pages/ActivityManagement';
+
 function App() {
   return (
     <AuthProvider>
@@ -104,6 +107,14 @@ function App() {
     path="/batches"
     element={<BatchManagement />}
   />
+
+  <Route path="/activities" element={
+    <ActivityProvider>
+        <ActivityManagement />
+    </ActivityProvider>
+} />
+
+
 </Route>
 
         </Routes>
